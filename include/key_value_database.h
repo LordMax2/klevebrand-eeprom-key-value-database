@@ -7,7 +7,6 @@
 
 #include <Arduino.h>
 #include <HardwareSerial.h>
-#include <string.h>
 
 #include "bucket.h"
 
@@ -20,7 +19,7 @@ class KeyValueDatabase {
     static constexpr int SLOT_SIZE = 128;
     static constexpr int KEY_LENGTH = 16;
 
-    int hashCode(const char *str) {
+    int hashCode(const char *str) const {
         int hash = 0;
         for (int i = 0; str[i] != '\0'; i++) {
             hash = (hash * 31 + str[i]) % _eeprom_size;
@@ -28,7 +27,7 @@ class KeyValueDatabase {
         return hash;
     }
 
-    int getAlignedStartPosition(const char *key) {
+    int getAlignedStartPosition(const char *key) const {
         int hash = hashCode(key);
 
         hash = hash % _eeprom_size;
@@ -45,6 +44,11 @@ public:
 
     template<int size>
     bool insert(char key[KEY_LENGTH], const byte *data) {
+        // Prevent insert for now if size is too large, somehow maybe spread the object out in multiple slots in the future.
+        if (size > SLOT_SIZE) {
+            return false;
+        }
+
         const int start = getAlignedStartPosition(key);
 
         Serial.println(start);
@@ -90,7 +94,7 @@ public:
 
         Serial.println();
 
-        for (int i = 0; i < sizeof(T); i++) {
+        for (size_t i = 0; i < sizeof(T); i++) {
             Serial.print(bucket.data[i]);
         }
 
