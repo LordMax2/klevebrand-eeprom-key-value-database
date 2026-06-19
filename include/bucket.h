@@ -19,7 +19,7 @@ struct Bucket {
     size_t next_start_position;
     size_t previous_start_position;
     byte data[data_size] = {};
-    byte padding[slot_size - sizeof(Bucket*) - sizeof(char[key_length]) - sizeof(byte[data_size])];
+    byte padding[slot_size - sizeof(next_start_position) - sizeof(previous_start_position) - sizeof(char[key_length]) - sizeof(byte[data_size])];
 };
 
 

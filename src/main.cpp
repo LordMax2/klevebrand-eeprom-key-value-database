@@ -7,18 +7,14 @@
 EepromI2cDriver driver(0x50, I2C_DEVICESIZE_24LC512);
 KeyValueDatabase<EepromI2cDriver> database(driver, I2C_DEVICESIZE_24LC512);
 
+struct TestStruct {
+    uint8_t a;
+    uint16_t b;
+    uint32_t c;
+};
 
-void setup() {
-    Serial.begin(115200);
-
-    if (!driver.setup()) {
-        Serial.println("EEPROM not connected");
-        while (true);
-    }
-
-    Serial.println("EEPROM connected");
-
-    char key[16] = "test\0";
+void test1() {
+    char key[16] = "testa\0";
 
     const auto start_micros_insert = micros();
 
@@ -33,13 +29,42 @@ void setup() {
     const auto end_micros = micros();
 
     Serial.print("Reading data: ");
-    Serial.println(read);
-
-    Serial.println("Time: ");
-    Serial.println("Insert:");
-    Serial.println(end_micros_insert - start_micros_insert);
-    Serial.println("Read:");
+    Serial.print(read);
+    Serial.print(", benchmark: insert time: ");
+    Serial.print(end_micros_insert - start_micros_insert);
+    Serial.print(", read time: ");
     Serial.println(end_micros - start_micros);
+}
+
+void test2() {
+   TestStruct test {123, 456, 789};
+
+    char key[16] = "test2\0";
+
+    database.insert<sizeof(TestStruct)>(key, (const byte*)&test);
+
+    const auto read = database.get<TestStruct>(key);
+
+    Serial.print("Reading data: ");
+    Serial.print(read.a);
+    Serial.print(", ");
+    Serial.print(read.b);
+    Serial.print(", ");
+    Serial.println(read.c);
+}
+
+
+void setup() {
+    Serial.begin(115200);
+
+    if (!driver.setup()) {
+        Serial.println("EEPROM not connected");
+        while (true);
+    }
+
+    Serial.println("EEPROM connected");
+
+    test1();
 
     Serial.println("Done.");
 }
