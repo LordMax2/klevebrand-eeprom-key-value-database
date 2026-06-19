@@ -42,6 +42,14 @@ public:
                                                                              _eeprom_size(eeprom_size) {
     }
 
+    bool insert(char key[KEY_LENGTH], const long *data) {
+        return insert<sizeof(long)>(key, (const byte*) &data);
+    }
+
+    bool insert(char key[KEY_LENGTH], const long data) {
+        return insert<sizeof(long)>(key, (const byte*) &data);
+    }
+
     template<int size>
     bool insert(char key[KEY_LENGTH], const byte *data) {
         // Prevent insert for now if size is too large, somehow maybe spread the object out in multiple slots in the future.
@@ -50,8 +58,6 @@ public:
         }
 
         const int start = getAlignedStartPosition(key);
-
-        Serial.println(start);
 
         Bucket<KEY_LENGTH, size, SLOT_SIZE> bucket;
 
@@ -85,20 +91,6 @@ public:
 
         Bucket<KEY_LENGTH, sizeof(T), SLOT_SIZE> bucket;
         _driver.read(start, (byte *) &bucket, SLOT_SIZE);
-
-        for (int i = 0; i < 16; i++) {
-            if (bucket.key[i] == '\0') break;
-
-            Serial.print(bucket.key[i]);
-        }
-
-        Serial.println();
-
-        for (size_t i = 0; i < sizeof(T); i++) {
-            Serial.print(bucket.data[i]);
-        }
-
-        Serial.println();
 
         T result;
 

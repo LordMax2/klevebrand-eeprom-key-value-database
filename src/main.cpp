@@ -18,20 +18,28 @@ void setup() {
 
     Serial.println("EEPROM connected");
 
-    const long start = 1337l;
-
-    Serial.print("Inserting data: ");
-    Serial.println(start);
-
     char key[16] = "test\0";
 
-    database.insert<sizeof(long)>(key, (const byte*) &start);
+    const auto start_micros_insert = micros();
+
+    database.insert(key, 1339l);
+
+    const auto end_micros_insert = micros();
+
+    const auto start_micros = micros();
 
     const auto read = database.get<long>(key);
 
-    Serial.print("Reading data: ");
+    const auto end_micros = micros();
 
+    Serial.print("Reading data: ");
     Serial.println(read);
+
+    Serial.println("Time: ");
+    Serial.println("Insert:");
+    Serial.println(end_micros_insert - start_micros_insert);
+    Serial.println("Read:");
+    Serial.println(end_micros - start_micros);
 
     Serial.println("Done.");
 }
