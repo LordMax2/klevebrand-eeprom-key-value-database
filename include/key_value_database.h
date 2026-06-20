@@ -1,6 +1,16 @@
 #ifndef KLEVEBRAND_EEPROM_KEY_VALUE_STORE_KEY_VALUE_DATABASE_H
 #define KLEVEBRAND_EEPROM_KEY_VALUE_STORE_KEY_VALUE_DATABASE_H
 
+struct CuckooPositionResult {
+    bool is_occupied;
+    long existing_bucket_new_start_position;
+    long start_position;
+
+    bool cycleDetected() const {
+        return is_occupied && existing_bucket_new_start_position == -1;
+    }
+};
+
 template<class EepromDriver, long SlotSize, long KeyLength>
 class KeyValueDatabase {
     EepromDriver _driver;
@@ -10,7 +20,9 @@ class KeyValueDatabase {
 protected:
     long hashCode(const char *str) const;
 
-    long getStartPosition(const char *key);
+    CuckooPositionResult getInsertPosition(const char *key);
+
+    long findPosition(const char *key);
 
 public:
     explicit KeyValueDatabase(EepromDriver driver) : _driver(driver), _eeprom_size(driver.getSize()) {

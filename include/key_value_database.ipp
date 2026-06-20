@@ -11,7 +11,13 @@ long KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::hashCode(const char *s
 }
 
 template<class EepromDriver, long SlotSize, long KeyLength>
-long KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::getStartPosition(const char *key) {
+CuckooPositionResult KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::getInsertPosition(const char *key) {
+    const long existing_position = findPosition(key);
+
+    if (existing_position != -1) {
+        return {false, -1, existing_position};
+    }
+
     const long hash = hash1(key);
 
     const long start_position = hash * SlotSize;
@@ -25,17 +31,7 @@ long KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::getStartPosition(const
 
     // Is empty, just return the start position, no moving needed.
     if (is_empty || occupied_by_the_same_key) {
-        Serial.print(key);
-        Serial.print(": Is empty: ");
-        Serial.print(is_empty);
-        Serial.print(". Occupied by the same key: ");
-        Serial.print(occupied_by_the_same_key);
-        Serial.print(", already existing key: ");
-        Serial.print(existing_bucket.key);
-        Serial.print(". Returning position: ");
-        Serial.println(start_position);
-
-        return start_position;
+        return {false, -1, start_position};
     }
 
     const long relocation_start_position = hash2(existing_bucket.key) * SlotSize;
@@ -45,26 +41,45 @@ long KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::getStartPosition(const
     _driver.read(relocation_start_position, (byte *) &existing_bucket_for_relocating_bucket, SlotSize);
 
     const bool relocation_is_empty = !existing_bucket_for_relocating_bucket.hasNullTerminator();
-    const bool relocation_occupied_by_the_same_key = existing_bucket_for_relocating_bucket.keyEquals(key);
+    const bool relocation_occupied_by_the_same_key = existing_bucket_for_relocating_bucket.keyEquals(existing_bucket.key);
 
     // Relocation is empty, return the relocation start position
     if (relocation_is_empty || relocation_occupied_by_the_same_key) {
-        Serial.print(key);
-        Serial.print(": Relocation is empty: ");
-        Serial.print(relocation_is_empty);
-        Serial.print(". Relocation occupied by the same key: ");
-        Serial.print(relocation_occupied_by_the_same_key);
-        Serial.print(", already existing key: ");
-        Serial.print(existing_bucket_for_relocating_bucket.key);
-        Serial.print(". Returning position: ");
-        Serial.println(relocation_start_position);
-
-        return relocation_start_position;
+        return {true, relocation_start_position, start_position};
     }
 
-    //Serial.println("PANIC");
-
     // If we get here, we unfortunately have a cycle, PANIC
+    return {true, -1, start_position};
+}
+
+template<class EepromDriver, long SlotSize, long KeyLength>
+long KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::findPosition(const char *key) {
+    const long start_position = hash1(key) * SlotSize;
+
+    Bucket<KeyLength, 0, SlotSize> bucket;
+
+    _driver.read(start_position, (byte *) &bucket, SlotSize);
+
+    if (!bucket.hasNullTerminator()) {
+        return -1;
+    }
+
+    if (bucket.keyEquals(key)) {
+        return start_position;
+    }
+
+    const long alternative_position = hash2(key) * SlotSize;
+
+    _driver.read(alternative_position, (byte *) &bucket, SlotSize);
+
+    if (!bucket.hasNullTerminator()) {
+        return -1;
+    }
+
+    if (bucket.keyEquals(key)) {
+        return alternative_position;
+    }
+
     return -1;
 }
 
@@ -132,22 +147,26 @@ bool KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::insert(const char *key
         return false;
     }
 
-    int start = getStartPosition(key);
+    const CuckooPositionResult position_result = getInsertPosition(key);
 
-    if (start == -1) {
+    if (position_result.cycleDetected()) {
         Serial.print(key);
         Serial.println(": Cycle detected.");
 
         return false;
     }
 
-    Bucket<KeyLength, size, SlotSize> existing_bucket;
+    if (position_result.is_occupied) {
+        byte existing_bucket[SlotSize];
 
-    _driver.read(start, (byte *) &existing_bucket, SlotSize);
+        _driver.read(position_result.start_position, existing_bucket, SlotSize);
+
+        _driver.write(position_result.existing_bucket_new_start_position, existing_bucket, SlotSize);
+    }
 
     Bucket<KeyLength, size, SlotSize> bucket_to_insert(key, data);
 
-    _driver.write(start, (byte *) &bucket_to_insert, SlotSize);
+    _driver.write(position_result.start_position, (byte *) &bucket_to_insert, SlotSize);
 
     return true;
 }
@@ -155,16 +174,16 @@ bool KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::insert(const char *key
 template<class EepromDriver, long SlotSize, long KeyLength>
 template<typename T>
 T KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::get(const char *key) {
-    const int start = getStartPosition(key);
+    const long position = findPosition(key);
 
-    if (start == -1) {
+    if (position == -1) {
         Serial.println("Key not found.");
 
         return T{};
     }
 
     Bucket<KeyLength, sizeof(T), SlotSize> bucket;
-    _driver.read(start, (byte *) &bucket, SlotSize);
+    _driver.read(position, (byte *) &bucket, SlotSize);
 
     T result;
 
