@@ -36,13 +36,13 @@ void test1() {
 }
 
 void test2() {
-   TestStruct test {123, 456, 789};
+    TestStruct test{123, 456, 789};
 
     char key[16] = "test5\0";
 
     const auto start_micros_insert = micros();
 
-    database.insert<sizeof(TestStruct)>(key, (const byte*)&test);
+    database.insert<sizeof(TestStruct)>(key, (const byte *) &test);
 
     const auto end_micros_insert = micros();
 
@@ -64,7 +64,7 @@ void test2() {
     Serial.println(end_micros - start_micros);
 }
 
-void test3 () {
+void test3() {
     database.insert("A$", 220l);
     database.insert("A\x97", 230l);
     database.insert("A\xC7", 240l);

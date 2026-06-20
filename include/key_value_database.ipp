@@ -41,7 +41,8 @@ CuckooPositionResult KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::getIns
     _driver.read(relocation_start_position, (byte *) &existing_bucket_for_relocating_bucket, SlotSize);
 
     const bool relocation_is_empty = !existing_bucket_for_relocating_bucket.hasNullTerminator();
-    const bool relocation_occupied_by_the_same_key = existing_bucket_for_relocating_bucket.keyEquals(existing_bucket.key);
+    const bool relocation_occupied_by_the_same_key = existing_bucket_for_relocating_bucket.keyEquals(
+        existing_bucket.key);
 
     // Relocation is empty, return the relocation start position
     if (relocation_is_empty || relocation_occupied_by_the_same_key) {
