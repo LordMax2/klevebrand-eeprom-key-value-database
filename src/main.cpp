@@ -1,11 +1,10 @@
 #include <Arduino.h>
 
 #include "eeprom_i2c_driver.h"
-#include "I2C_eeprom.h"
 #include "key_value_database.h"
 
 EepromI2cDriver driver(0x50, STANDARD_EEPROM_SIZE_65536);
-KeyValueDatabase<EepromI2cDriver, 32, 16> database(driver);
+KeyValueDatabase<EepromI2cDriver, 128, 16> database(driver);
 
 struct TestStruct {
     uint8_t a;
@@ -41,8 +40,6 @@ void test2() {
 
     char key[16] = "test5\0";
 
-    delay(10000);
-
     const auto start_micros_insert = micros();
 
     database.insert<sizeof(TestStruct)>(key, (const byte*)&test);
@@ -67,6 +64,25 @@ void test2() {
     Serial.println(end_micros - start_micros);
 }
 
+void test3 () {
+    database.insert("A$", 220l);
+    database.insert("A\x97", 230l);
+    database.insert("A\xC7", 240l);
+    database.insert("ABC", 250l);
+
+    Serial.println();
+    Serial.println("Reading data: ");
+    auto a = database.get<long>("A$");
+    auto b = database.get<long>("A\x97");
+    auto c = database.get<long>("A\xC7");
+    auto d = database.get<long>("ABC");
+    Serial.println("---");
+    Serial.println(a);
+    Serial.println(b);
+    Serial.println(c);
+    Serial.println(d);
+}
+
 
 void setup() {
     Serial.begin(115200);
@@ -78,7 +94,6 @@ void setup() {
 
     Serial.println("EEPROM connected");
 
-    test1();
 
     Serial.println("Done.");
 }

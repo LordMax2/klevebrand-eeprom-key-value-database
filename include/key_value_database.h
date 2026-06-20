@@ -1,39 +1,34 @@
 #ifndef KLEVEBRAND_EEPROM_KEY_VALUE_STORE_KEY_VALUE_DATABASE_H
 #define KLEVEBRAND_EEPROM_KEY_VALUE_STORE_KEY_VALUE_DATABASE_H
 
-#include <Arduino.h>
-
-template <class EepromDriver, long SlotSize, long KeyLength>
-class KeyValueDatabase
-{
+template<class EepromDriver, long SlotSize, long KeyLength>
+class KeyValueDatabase {
     EepromDriver _driver;
 
     long _eeprom_size;
 
 protected:
-    long hashCode(const char* str) const;
+    long hashCode(const char *str) const;
 
-    long getStartPosition(const char* key) const;
-
-    long hash1(const char* str) const;
-    long hash2(const char* str) const;
-
-    long getStartPositionCuckoo(const char* key) const;
+    long getStartPosition(const char *key);
 
 public:
-    explicit KeyValueDatabase(EepromDriver driver) : _driver(driver), _eeprom_size(driver.getSize())
-    {
+    explicit KeyValueDatabase(EepromDriver driver) : _driver(driver), _eeprom_size(driver.getSize()) {
     }
 
-    bool insert(char key[KeyLength], const long* data);
+    long hash1(const char *str) const;
 
-    bool insert(char key[KeyLength], long data);
+    long hash2(const char *str) const;
 
-    template <long size>
-    bool insert(char key[KeyLength], const byte* data);
+    bool insert(const char *key, const long *data);
 
-    template <typename T>
-    T get(char key[KeyLength]);
+    bool insert(const char *key, long data);
+
+    template<long size>
+    bool insert(const char *key, const byte *data);
+
+    template<typename T>
+    T get(const char *key);
 };
 
 #include "key_value_database.ipp"
