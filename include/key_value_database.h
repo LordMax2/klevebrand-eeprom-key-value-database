@@ -3,27 +3,29 @@
 
 #include <Arduino.h>
 
-template <class EepromDriver, int SlotSize, int KeyLength>
+template <class EepromDriver, long SlotSize, long KeyLength>
 class KeyValueDatabase
 {
     EepromDriver _driver;
 
     long _eeprom_size;
 
-    int hashCode(const char* str) const;
+protected:
+    long hashCode(const char* str) const;
 
-    int getAlignedStartPosition(const char* key) const;
+    long getStartPosition(const char* key) const;
 
 public:
     explicit KeyValueDatabase(EepromDriver driver) : _driver(driver), _eeprom_size(driver.getSize())
     {
     }
 
+
     bool insert(char key[KeyLength], const long* data);
 
     bool insert(char key[KeyLength], long data);
 
-    template <int size>
+    template <long size>
     bool insert(char key[KeyLength], const byte* data);
 
     template <typename T>

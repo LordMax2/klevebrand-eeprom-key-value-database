@@ -5,7 +5,7 @@
 #include "key_value_database.h"
 
 EepromI2cDriver driver(0x50, STANDARD_EEPROM_SIZE_65536);
-KeyValueDatabase<EepromI2cDriver, 128, 16> database(driver);
+KeyValueDatabase<EepromI2cDriver, 32, 16> database(driver);
 
 struct TestStruct {
     uint8_t a;
@@ -78,7 +78,11 @@ void setup() {
 
     Serial.println("EEPROM connected");
 
-    test2();
+    Serial.println(database.getStartPosition("test1\0"));
+    Serial.println(database.getStartPosition("test2\0"));
+    Serial.println(database.getStartPosition("test4\0"));
+
+    //test1();
 
     Serial.println("Done.");
 }
