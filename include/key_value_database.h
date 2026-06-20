@@ -15,11 +15,15 @@ protected:
 
     long getStartPosition(const char* key) const;
 
+    long hash1(const char* str) const;
+    long hash2(const char* str) const;
+
+    long getStartPositionCuckoo(const char* key) const;
+
 public:
     explicit KeyValueDatabase(EepromDriver driver) : _driver(driver), _eeprom_size(driver.getSize())
     {
     }
-
 
     bool insert(char key[KeyLength], const long* data);
 

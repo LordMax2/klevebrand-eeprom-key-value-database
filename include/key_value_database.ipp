@@ -20,6 +20,24 @@ long KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::getStartPosition(const
 }
 
 template <class EepromDriver, long SlotSize, long KeyLength>
+long KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::hash1(const char* str) const
+{
+    return 0;
+}
+
+template <class EepromDriver, long SlotSize, long KeyLength>
+long KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::hash2(const char* str) const
+{
+    return 0;
+}
+
+template <class EepromDriver, long SlotSize, long KeyLength>
+long KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::getStartPositionCuckoo(const char* str) const
+{
+    return 0;
+}
+
+template <class EepromDriver, long SlotSize, long KeyLength>
 bool KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::insert(char key[KeyLength], const long* data)
 {
     return insert<sizeof(long)>(key, (const byte*)&data);
