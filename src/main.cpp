@@ -4,8 +4,8 @@
 #include "I2C_eeprom.h"
 #include "key_value_database.h"
 
-EepromI2cDriver driver(0x50, I2C_DEVICESIZE_24LC512);
-KeyValueDatabase<EepromI2cDriver> database(driver, I2C_DEVICESIZE_24LC512);
+EepromI2cDriver driver(0x50, STANDARD_EEPROM_SIZE_65536);
+KeyValueDatabase<EepromI2cDriver> database(driver);
 
 struct TestStruct {
     uint8_t a;
@@ -41,16 +41,28 @@ void test2() {
 
     char key[16] = "test2\0";
 
+    const auto start_micros_insert = micros();
+
     database.insert<sizeof(TestStruct)>(key, (const byte*)&test);
 
+    const auto end_micros_insert = micros();
+
+    const auto start_micros = micros();
+
     const auto read = database.get<TestStruct>(key);
+
+    const auto end_micros = micros();
 
     Serial.print("Reading data: ");
     Serial.print(read.a);
     Serial.print(", ");
     Serial.print(read.b);
     Serial.print(", ");
-    Serial.println(read.c);
+    Serial.print(read.c);
+    Serial.print(", benchmark: insert time: ");
+    Serial.print(end_micros_insert - start_micros_insert);
+    Serial.print(", read time: ");
+    Serial.println(end_micros - start_micros);
 }
 
 
@@ -64,7 +76,7 @@ void setup() {
 
     Serial.println("EEPROM connected");
 
-    test1();
+    test2();
 
     Serial.println("Done.");
 }

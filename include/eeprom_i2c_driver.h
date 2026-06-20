@@ -9,8 +9,10 @@
 class EepromI2cDriver {
     I2C_eeprom _eeprom;
 
+    long _eeprom_size;
+
 public:
-    EepromI2cDriver(const int address, const long eeprom_size) : _eeprom(address, eeprom_size) {
+    EepromI2cDriver(const int address, const long eeprom_size) : _eeprom(address, eeprom_size), _eeprom_size(eeprom_size) {
     }
 
     bool setup() {
@@ -25,6 +27,11 @@ public:
 
     int write(const int start, const uint8_t *buffer, const int length) {
         return _eeprom.writeBlock(start, buffer, length);
+    }
+
+    long getSize() const
+    {
+        return _eeprom_size;
     }
 };
 
