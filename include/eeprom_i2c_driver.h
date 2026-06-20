@@ -1,10 +1,18 @@
-//
-// Created by maxkl on 2026-06-19.
-//
-
 #ifndef KLEVEBRAND_EEPROM_KEY_VALUE_STORE_EEPROM_I2C_DRIVER_H
 #define KLEVEBRAND_EEPROM_KEY_VALUE_STORE_EEPROM_I2C_DRIVER_H
+
 #include "I2C_eeprom.h"
+
+static constexpr long STANDARD_EEPROM_SIZE_65536 = 65536;
+static constexpr long STANDARD_EEPROM_SIZE_32768 = 32768;
+static constexpr long STANDARD_EEPROM_SIZE_16384 = 16384;
+static constexpr long STANDARD_EEPROM_SIZE_8192 = 8192;
+static constexpr long STANDARD_EEPROM_SIZE_4096 = 4096;
+static constexpr long STANDARD_EEPROM_SIZE_2048 = 2048;
+static constexpr long STANDARD_EEPROM_SIZE_1024 = 1024;
+static constexpr long STANDARD_EEPROM_SIZE_512 = 512;
+static constexpr long STANDARD_EEPROM_SIZE_256 = 256;
+static constexpr long STANDARD_EEPROM_SIZE_128 = 128;
 
 class EepromI2cDriver {
     I2C_eeprom _eeprom;

@@ -5,7 +5,7 @@
 #include "key_value_database.h"
 
 EepromI2cDriver driver(0x50, STANDARD_EEPROM_SIZE_65536);
-KeyValueDatabase<EepromI2cDriver> database(driver);
+KeyValueDatabase<EepromI2cDriver, 128, 16> database(driver);
 
 struct TestStruct {
     uint8_t a;
@@ -39,7 +39,9 @@ void test1() {
 void test2() {
    TestStruct test {123, 456, 789};
 
-    char key[16] = "test2\0";
+    char key[16] = "test5\0";
+
+    delay(10000);
 
     const auto start_micros_insert = micros();
 
