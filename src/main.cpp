@@ -78,11 +78,7 @@ void setup() {
 
     Serial.println("EEPROM connected");
 
-    Serial.println(database.getStartPosition("test1\0"));
-    Serial.println(database.getStartPosition("test2\0"));
-    Serial.println(database.getStartPosition("test4\0"));
-
-    //test1();
+    test1();
 
     Serial.println("Done.");
 }

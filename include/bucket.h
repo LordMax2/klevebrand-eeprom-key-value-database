@@ -1,20 +1,20 @@
 #ifndef KLEVEBRAND_EEPROM_KEY_VALUE_STORE_BUCKET_H
 #define KLEVEBRAND_EEPROM_KEY_VALUE_STORE_BUCKET_H
 
-template <int key_length, int data_size, int slot_size>
+template <int KeyLength, int DataSize, int SlotSize>
 struct Bucket
 {
     Bucket() = default;
 
-    Bucket(const char key[key_length], const byte* data)
+    Bucket(const char key[KeyLength], const byte* data)
     {
-        memcpy(this->key, key, key_length);
-        memcpy(this->data, data, data_size);
+        memcpy(this->key, key, KeyLength);
+        memcpy(this->data, data, DataSize);
     }
 
-    char key[key_length] = {};
-    byte data[data_size] = {};
-    byte padding[slot_size - sizeof(char[key_length]) - sizeof(byte[data_size])] = {};
+    char key[KeyLength] = {};
+    byte data[DataSize] = {};
+    byte padding[SlotSize - sizeof(char[KeyLength]) - sizeof(byte[DataSize])] = {};
 };
 
 
