@@ -1,5 +1,13 @@
 #pragma once
 
+struct CuckooPositionResult2
+{
+    long hash1_start_position;
+    bool hash1_is_occupied;
+    long hash2_start_position;
+    bool hash2_is_occupied;
+};
+
 struct CuckooPositionResult {
     bool is_occupied;
     long existing_bucket_new_start_position;
