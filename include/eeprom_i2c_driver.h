@@ -1,5 +1,4 @@
-#ifndef KLEVEBRAND_EEPROM_KEY_VALUE_STORE_EEPROM_I2C_DRIVER_H
-#define KLEVEBRAND_EEPROM_KEY_VALUE_STORE_EEPROM_I2C_DRIVER_H
+#pragma once
 
 #include "I2C_eeprom.h"
 
@@ -42,5 +41,3 @@ public:
         return _eeprom_size;
     }
 };
-
-#endif //KLEVEBRAND_EEPROM_KEY_VALUE_STORE_EEPROM_I2C_DRIVER_H
