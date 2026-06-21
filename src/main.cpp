@@ -4,7 +4,7 @@
 #include "key_value_database.h"
 
 EepromI2cDriver driver(0x50, STANDARD_EEPROM_SIZE_65536);
-KeyValueDatabase<EepromI2cDriver, 128, 16> database(driver);
+KeyValueDatabase<EepromI2cDriver, 64, 16> database(driver);
 
 struct TestStruct {
     uint8_t a;
@@ -13,7 +13,7 @@ struct TestStruct {
 };
 
 void test1() {
-    char key[16] = "testa\0";
+    constexpr char key[16] = "testa\0";
 
     const auto start_micros_insert = micros();
 
@@ -36,9 +36,9 @@ void test1() {
 }
 
 void test2() {
-    TestStruct test{123, 456, 789};
+    constexpr TestStruct test{123, 456, 789};
 
-    char key[16] = "test5\0";
+    constexpr char key[16] = "test5\0";
 
     const auto start_micros_insert = micros();
 
@@ -94,7 +94,7 @@ void setup() {
 
     Serial.println("EEPROM connected");
 
-    test3();
+    test2();
 
     Serial.println("Done.");
 }

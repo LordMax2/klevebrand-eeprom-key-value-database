@@ -24,6 +24,8 @@ class KeyValueDatabase {
 
     long _eeprom_size;
 
+    static_assert((SlotSize > 0 && SlotSize & (SlotSize - 1)) == 0, "SlotSize must be a power of 2");
+
 protected:
     long hashCode(const char *str) const;
 
