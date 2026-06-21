@@ -94,7 +94,7 @@ void setup() {
 
     Serial.println("EEPROM connected");
 
-    test2();
+    test3();
 
     Serial.println("Done.");
 }

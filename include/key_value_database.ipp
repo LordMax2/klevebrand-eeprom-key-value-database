@@ -11,46 +11,6 @@ long KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::hashCode(const char *s
 }
 
 template<class EepromDriver, long SlotSize, long KeyLength>
-CuckooPositionResult KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::getInsertPosition(const char *key) {
-    const long existing_position = findPosition(key);
-
-    if (existing_position != -1) {
-        return {false, -1, existing_position};
-    }
-
-    const long hash1_start_position = hash1(key) * SlotSize;
-
-    Bucket<KeyLength, 0, SlotSize> existing_bucket;
-
-    _driver.read(hash1_start_position, (byte *) &existing_bucket, SlotSize);
-
-    const bool is_empty = !existing_bucket.hasNullTerminator();
-    const bool occupied_by_the_same_key = existing_bucket.keyEquals(key);
-
-    // Is empty, just return the start position, no moving needed.
-    if (is_empty || occupied_by_the_same_key) {
-        return {false, -1, hash1_start_position};
-    }
-
-    const long relocation_hash2_start_position = hash2(existing_bucket.key) * SlotSize;
-
-    Bucket<KeyLength, 0, SlotSize> existing_bucket_for_relocating_bucket;
-
-    _driver.read(relocation_hash2_start_position, (byte *) &existing_bucket_for_relocating_bucket, SlotSize);
-
-    const bool relocation_is_empty = !existing_bucket_for_relocating_bucket.hasNullTerminator();
-    const bool relocation_occupied_by_the_same_key = existing_bucket_for_relocating_bucket.keyEquals(existing_bucket.key);
-
-    // Relocation is empty, return the relocation start position
-    if (relocation_is_empty || relocation_occupied_by_the_same_key) {
-        return {true, relocation_hash2_start_position, hash1_start_position};
-    }
-
-    // If we get here, we unfortunately have a cycle, PANIC
-    return {true, -1, -1};
-}
-
-template<class EepromDriver, long SlotSize, long KeyLength>
 long KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::findPosition(const char *key) {
     const long hash1_start_position = hash1(key) * SlotSize;
 
@@ -133,26 +93,49 @@ bool KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::insert(const char *key
         return false;
     }
 
-    const CuckooPositionResult position_result = getInsertPosition(key);
+    const auto existing_start_position = findPosition(key);
 
-    if (position_result.cycleDetected()) {
-        Serial.print(key);
-        Serial.println(": Cycle detected.");
+    if (existing_start_position != -1) {
+        Bucket<KeyLength, DataSize, SlotSize> bucket_to_insert(key, data);
+
+        _driver.write(existing_start_position, (byte *) &bucket_to_insert, SlotSize);
+
+        return true;
+    }
+
+    const auto hash1_start = hash1(key) * SlotSize;
+
+    Bucket<KeyLength, DataSize, SlotSize> existing_bucket;
+
+    _driver.read(hash1_start, (byte *) &existing_bucket, SlotSize);
+
+    if (!existing_bucket.hasNullTerminator()) {
+        Bucket<KeyLength, DataSize, SlotSize> bucket_to_insert(key, data);
+
+        _driver.write(hash1_start, (byte *) &bucket_to_insert, SlotSize);
+
+        return true;
+    }
+
+    const auto hash2_start = hash2(existing_bucket.key) * SlotSize;
+
+    Bucket<KeyLength, DataSize, SlotSize> existing_bucket2;
+
+    _driver.read(hash2_start, (byte *) &existing_bucket2, SlotSize);
+
+    if (!existing_bucket2.hasNullTerminator() || existing_bucket2.keyEquals(existing_bucket.key)) {
+        _driver.write(hash2_start, (byte *) &existing_bucket, SlotSize);
+    } else {
+        // CYCLE
+        // insert(existing_bucket2.key, existing_bucket2.data); // Should be possible to do something like this, not right now but in future
+        Serial.println("Cycle detected, insert failed.");
 
         return false;
     }
 
-    if (position_result.is_occupied) {
-        byte existing_bucket[SlotSize];
-
-        _driver.read(position_result.start_position, existing_bucket, SlotSize);
-
-        _driver.write(position_result.existing_bucket_new_start_position, existing_bucket, SlotSize);
-    }
-
     Bucket<KeyLength, DataSize, SlotSize> bucket_to_insert(key, data);
 
-    _driver.write(position_result.start_position, (byte *) &bucket_to_insert, SlotSize);
+    _driver.write(hash1_start, (byte *) &bucket_to_insert, SlotSize);
 
     return true;
 }
