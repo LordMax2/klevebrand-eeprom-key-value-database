@@ -1,23 +1,5 @@
 #pragma once
 
-struct CuckooPositionResult2
-{
-    long hash1_start_position;
-    bool hash1_is_occupied;
-    long hash2_start_position;
-    bool hash2_is_occupied;
-};
-
-struct CuckooPositionResult {
-    bool is_occupied;
-    long existing_bucket_new_start_position;
-    long start_position;
-
-    bool cycleDetected() const {
-        return is_occupied && existing_bucket_new_start_position == -1;
-    }
-};
-
 template<class EepromDriver, long SlotSize, long KeyLength>
 class KeyValueDatabase {
     EepromDriver _driver;
@@ -28,8 +10,6 @@ class KeyValueDatabase {
 
 protected:
     long hashCode(const char *str) const;
-
-    CuckooPositionResult getInsertPosition(const char *key);
 
     long findPosition(const char *key);
 
