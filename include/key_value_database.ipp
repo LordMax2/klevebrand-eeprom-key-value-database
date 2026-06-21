@@ -18,68 +18,53 @@ CuckooPositionResult KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::getIns
         return {false, -1, existing_position};
     }
 
-    const long hash = hash1(key);
-
-    const long start_position = hash * SlotSize;
+    const long hash1_start_position = hash1(key) * SlotSize;
 
     Bucket<KeyLength, 0, SlotSize> existing_bucket;
 
-    _driver.read(start_position, (byte *) &existing_bucket, SlotSize);
+    _driver.read(hash1_start_position, (byte *) &existing_bucket, SlotSize);
 
     const bool is_empty = !existing_bucket.hasNullTerminator();
     const bool occupied_by_the_same_key = existing_bucket.keyEquals(key);
 
     // Is empty, just return the start position, no moving needed.
     if (is_empty || occupied_by_the_same_key) {
-        return {false, -1, start_position};
+        return {false, -1, hash1_start_position};
     }
 
-    const long relocation_start_position = hash2(existing_bucket.key) * SlotSize;
+    const long relocation_hash2_start_position = hash2(existing_bucket.key) * SlotSize;
 
     Bucket<KeyLength, 0, SlotSize> existing_bucket_for_relocating_bucket;
 
-    _driver.read(relocation_start_position, (byte *) &existing_bucket_for_relocating_bucket, SlotSize);
+    _driver.read(relocation_hash2_start_position, (byte *) &existing_bucket_for_relocating_bucket, SlotSize);
 
     const bool relocation_is_empty = !existing_bucket_for_relocating_bucket.hasNullTerminator();
-    const bool relocation_occupied_by_the_same_key = existing_bucket_for_relocating_bucket.keyEquals(
-        existing_bucket.key);
+    const bool relocation_occupied_by_the_same_key = existing_bucket_for_relocating_bucket.keyEquals(existing_bucket.key);
 
     // Relocation is empty, return the relocation start position
     if (relocation_is_empty || relocation_occupied_by_the_same_key) {
-        return {true, relocation_start_position, start_position};
+        return {true, relocation_hash2_start_position, hash1_start_position};
     }
 
     // If we get here, we unfortunately have a cycle, PANIC
-    return {true, -1, start_position};
+    return {true, -1, -1};
 }
 
 template<class EepromDriver, long SlotSize, long KeyLength>
 long KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::findPosition(const char *key) {
-    const long start_position = hash1(key) * SlotSize;
+    const long hash1_start_position = hash1(key) * SlotSize;
 
-    Bucket<KeyLength, 0, SlotSize> bucket;
+    Bucket<KeyLength, 0, SlotSize> existing_bucket_at_hash1_start;
 
-    _driver.read(start_position, (byte *) &bucket, SlotSize);
+    _driver.read(hash1_start_position, (byte *) &existing_bucket_at_hash1_start, SlotSize);
 
-    if (!bucket.hasNullTerminator()) {
-        return -1;
-    }
+    if (existing_bucket_at_hash1_start.keyEquals(key)) return hash1_start_position;
 
-    if (bucket.keyEquals(key)) {
-        return start_position;
-    }
+    const long hash2_start_position = hash2(key) * SlotSize;
 
-    const long alternative_position = hash2(key) * SlotSize;
+    _driver.read(hash2_start_position, (byte *) &existing_bucket_at_hash1_start, SlotSize);
 
-    _driver.read(alternative_position, (byte *) &bucket, SlotSize);
-
-    if (!bucket.hasNullTerminator()) {
-        return -1;
-    }
-
-    if (bucket.keyEquals(key)) {
-        return alternative_position;
-    }
+    if (existing_bucket_at_hash1_start.keyEquals(key)) return hash2_start_position;
 
     return -1;
 }
@@ -139,10 +124,10 @@ bool KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::insert(const char *key
 }
 
 template<class EepromDriver, long SlotSize, long KeyLength>
-template<long size>
+template<long DataSize>
 bool KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::insert(const char *key, const byte *data) {
     // Prevent insert for now if size is too large, somehow maybe spread the object out in multiple slots in the future.
-    if (size > SlotSize) {
+    if (DataSize > SlotSize) {
         Serial.println("Size is too large for this EEPROM.");
 
         return false;
@@ -165,7 +150,7 @@ bool KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::insert(const char *key
         _driver.write(position_result.existing_bucket_new_start_position, existing_bucket, SlotSize);
     }
 
-    Bucket<KeyLength, size, SlotSize> bucket_to_insert(key, data);
+    Bucket<KeyLength, DataSize, SlotSize> bucket_to_insert(key, data);
 
     _driver.write(position_result.start_position, (byte *) &bucket_to_insert, SlotSize);
 

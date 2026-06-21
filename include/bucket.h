@@ -1,5 +1,4 @@
-#ifndef KLEVEBRAND_EEPROM_KEY_VALUE_STORE_BUCKET_H
-#define KLEVEBRAND_EEPROM_KEY_VALUE_STORE_BUCKET_H
+#pragma once
 
 template<int KeyLength, int DataSize, int SlotSize>
 struct Bucket {
@@ -50,6 +49,3 @@ struct Bucket {
         return true;
     }
 };
-
-
-#endif //KLEVEBRAND_EEPROM_KEY_VALUE_STORE_BUCKET_H

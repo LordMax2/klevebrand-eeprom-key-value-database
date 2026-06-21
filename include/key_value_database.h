@@ -1,5 +1,4 @@
-#ifndef KLEVEBRAND_EEPROM_KEY_VALUE_STORE_KEY_VALUE_DATABASE_H
-#define KLEVEBRAND_EEPROM_KEY_VALUE_STORE_KEY_VALUE_DATABASE_H
+#pragma once
 
 struct CuckooPositionResult {
     bool is_occupied;
@@ -36,7 +35,7 @@ public:
 
     bool insert(const char *key, long data);
 
-    template<long size>
+    template<long DataSize>
     bool insert(const char *key, const byte *data);
 
     template<typename T>
@@ -44,5 +43,3 @@ public:
 };
 
 #include "key_value_database.ipp"
-
-#endif //KLEVEBRAND_EEPROM_KEY_VALUE_STORE_KEY_VALUE_DATABASE_H
