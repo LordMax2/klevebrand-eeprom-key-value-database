@@ -2,15 +2,6 @@
 #include "hashtable_values.h"
 
 template<class EepromDriver, long SlotSize, long KeyLength>
-long KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::hashCode(const char *str) const {
-    long hash = 0;
-    for (long i = 0; str[i] != '\0'; i++) {
-        hash = (hash * 31 + str[i]) % (_eeprom_size / SlotSize);
-    }
-    return hash;
-}
-
-template<class EepromDriver, long SlotSize, long KeyLength>
 long KeyValueDatabase<EepromDriver, SlotSize, KeyLength>::findPosition(const char *key) {
     const long hash1_start_position = hash1(key) * SlotSize;
 

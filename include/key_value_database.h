@@ -6,20 +6,17 @@ class KeyValueDatabase {
 
     long _eeprom_size;
 
-    static_assert((SlotSize > 0 && SlotSize & (SlotSize - 1)) == 0, "SlotSize must be a power of 2");
+    long hash1(const char *str) const;
 
-protected:
-    long hashCode(const char *str) const;
+    long hash2(const char *str) const;
+
+    static_assert((SlotSize > 0 && SlotSize & (SlotSize - 1)) == 0, "SlotSize must be a power of 2");
 
     long findPosition(const char *key);
 
 public:
     explicit KeyValueDatabase(EepromDriver driver) : _driver(driver), _eeprom_size(driver.getSize()) {
     }
-
-    long hash1(const char *str) const;
-
-    long hash2(const char *str) const;
 
     bool insert(const char *key, const long *data);
 
