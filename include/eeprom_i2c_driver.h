@@ -1,5 +1,6 @@
 #pragma once
 
+#include "base_storage_driver.h"
 #include "I2C_eeprom.h"
 
 static constexpr long STANDARD_EEPROM_SIZE_65536 = 65536;
@@ -13,7 +14,7 @@ static constexpr long STANDARD_EEPROM_SIZE_512 = 512;
 static constexpr long STANDARD_EEPROM_SIZE_256 = 256;
 static constexpr long STANDARD_EEPROM_SIZE_128 = 128;
 
-class EepromI2cDriver {
+class EepromI2cDriver : BaseStorageDriver {
     I2C_eeprom _eeprom;
 
     long _eeprom_size;
@@ -29,15 +30,15 @@ public:
         return _eeprom.isConnected();
     }
 
-    int read(const int start, uint8_t *buffer, const int length) {
+    int read(const int start, uint8_t *buffer, const int length) override {
         return _eeprom.readBlock(start, buffer, length);
     }
 
-    int write(const int start, const uint8_t *buffer, const int length) {
+    int write(const int start, const uint8_t *buffer, const int length) override {
         return _eeprom.writeBlock(start, buffer, length);
     }
 
-    long getSize() const {
+    long getSize() override {
         return _eeprom_size;
     }
 };
