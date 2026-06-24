@@ -3,6 +3,7 @@
 #include "eeprom_i2c_driver.h"
 #include "key_value_database.h"
 
+
 EepromI2cDriver driver(0x50, STANDARD_EEPROM_SIZE_65536);
 KeyValueDatabase<EepromI2cDriver, 64, 16> database(driver);
 

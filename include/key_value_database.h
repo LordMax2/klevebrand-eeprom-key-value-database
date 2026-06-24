@@ -1,8 +1,10 @@
 #pragma once
 
-template<class EepromDriver, long SlotSize, long KeyLength>
+#include "base_storage_driver.h"
+
+template<class StorageDriver, long SlotSize, long KeyLength>
 class KeyValueDatabase {
-    EepromDriver _driver;
+    StorageDriver _driver;
 
     long _eeprom_size;
 
@@ -15,7 +17,7 @@ class KeyValueDatabase {
     long findPosition(const char *key);
 
 public:
-    explicit KeyValueDatabase(EepromDriver driver) : _driver(driver), _eeprom_size(driver.getSize()) {
+    explicit KeyValueDatabase(StorageDriver driver) : _driver(driver), _eeprom_size(driver.getSize()) {
     }
 
     bool insert(const char *key, const long *data);
